@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="android.view.Gravity" />
+
+        <variable
+            name="chat"
+            type="com.afinos.chatfire.viewmodel.ChatViewModel" />
+    </data>
+
+    <android.support.v7.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foreground="?selectableItemBackground"
+        android:gravity="@{chat.me ? Gravity.RIGHT : Gravity.LEFT}"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Message"
+            android:singleLine="true"
+            android:text="@{chat.message}" />
+
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Message"
+            android:singleLine="true"
+            android:text="@{chat.author}"
+            android:textColor="#f56060"
+            android:textSize="12sp" />
+    </android.support.v7.widget.LinearLayoutCompat>
+</layout>

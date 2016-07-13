@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1037991470297",
+    "firebase_url": "https://chatfire-b9ff1.firebaseio.com",
+    "project_id": "chatfire-b9ff1",
+    "storage_bucket": "chatfire-b9ff1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1037991470297:android:59d3c6afd2d0c0c4",
+        "android_client_info": {
+          "package_name": "com.afinos.chatfire"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1037991470297-aa0aijpddl1lff7v3on04do5frgmna8t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHDqfl-hDmcveZg4ynpNsN3GIbnzhhbJg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
