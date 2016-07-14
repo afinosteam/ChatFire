@@ -7,8 +7,10 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.afinos.api.helper.FireDBHelper;
 import com.afinos.chatfire.R;
 import com.afinos.chatfire.databinding.ActivityLoginBinding;
+import com.afinos.chatfire.model.User;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -20,6 +22,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends BaseActivity {
     private static final String TAG = LoginActivity.class.getSimpleName();
@@ -72,6 +75,16 @@ public class LoginActivity extends BaseActivity {
                             Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         } else {
+                            FirebaseUser firebaseUser = task.getResult().getUser();
+
+                            User user = new User();
+                            user.setId(firebaseUser.getUid());
+                            user.setActive(true);
+                            user.setEmail(firebaseUser.getEmail());
+                            user.setName(firebaseUser.getDisplayName());
+
+                            FireDBHelper.create(user);
+
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         }

@@ -7,6 +7,7 @@ public class Chat extends FModel {
     private String author;
     private String authorId;
     private String toId;
+    private String action;
     protected String message;
 
     public String getAuthor() {
@@ -39,5 +40,13 @@ public class Chat extends FModel {
 
     public void setToId(String toId) {
         this.toId = toId;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
     }
 }

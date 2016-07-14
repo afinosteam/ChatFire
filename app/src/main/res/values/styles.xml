@@ -22,6 +22,11 @@
         <item name="colorButtonNormal">#FFFFFF</item>
     </style>
 
+    <style name="ButtonPrimary">
+        <item name="colorButtonNormal">@color/colorPrimary</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
     <style name="Button90">
         <item name="colorButtonNormal">#11000000</item>
     </style>

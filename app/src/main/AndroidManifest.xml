@@ -32,9 +32,17 @@
         <activity
             android:name=".ui.ChatActivity"
             android:launchMode="singleTop"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"></activity>
 
-        </activity>
+        <service
+            android:name="com.afinos.api.service.ChatFireService"
+            android:enabled="true"
+            android:exported="true"
+            android:stopWithTask="false" />
+
+        <activity
+            android:name=".ui.ProfileActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
