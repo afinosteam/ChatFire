@@ -16,23 +16,29 @@
         android:layout_height="wrap_content"
         android:foreground="?selectableItemBackground"
         android:gravity="@{chat.me ? Gravity.RIGHT : Gravity.LEFT}"
-        android:orientation="vertical"
-        android:padding="8dp">
+        android:orientation="vertical">
 
         <android.support.v7.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Message"
-            android:singleLine="true"
-            android:text="@{chat.message}" />
+            android:background="@{chat.me ? @drawable/round_right : @drawable/round_left}"
+            android:gravity="@{chat.me ? Gravity.RIGHT : Gravity.LEFT}"
+            android:padding="8dp"
+            android:text="@{chat.content}"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@{chat.me ? @color/white: @color/gray}"
+            android:textSize="14sp" />
 
         <android.support.v7.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="@{chat.me ? Gravity.RIGHT : Gravity.LEFT}"
             android:hint="Message"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
             android:singleLine="true"
-            android:text="@{chat.author}"
-            android:textColor="#f56060"
-            android:textSize="12sp" />
+            android:text="@{chat.fromUser}"
+            android:textColor="#fc7a7a"
+            android:textSize="11sp" />
     </android.support.v7.widget.LinearLayoutCompat>
 </layout>

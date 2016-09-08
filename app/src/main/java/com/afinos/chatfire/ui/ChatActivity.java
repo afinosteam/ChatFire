@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,30 +11,59 @@ import android.view.View;
 import com.afinos.api.binder.CompositeItemBinder;
 import com.afinos.api.binder.ItemBinder;
 import com.afinos.api.config.UserProfile;
-import com.afinos.api.helper.FireDBHelper;
-import com.afinos.api.key.ChatEvent;
 import com.afinos.api.listener.ClickHandler;
+import com.afinos.api.listener.SimpleChildEventListener;
+import com.afinos.api.utils.DateFormatUtils;
 import com.afinos.chatfire.BR;
 import com.afinos.chatfire.R;
 import com.afinos.chatfire.binder.ChatBinder;
 import com.afinos.chatfire.databinding.ActivityChatBinding;
-import com.afinos.chatfire.model.Chat;
+import com.afinos.chatfire.model.Message;
+import com.afinos.chatfire.model.RecentMessage;
 import com.afinos.chatfire.model.User;
+import com.afinos.chatfire.model.UserMessage;
 import com.afinos.chatfire.viewmodel.ChatViewModel;
 import com.afinos.chatfire.viewmodel.ChatsViewModel;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
-public class ChatActivity extends AppCompatActivity implements ChildEventListener {
+public class ChatActivity extends BaseActivity implements ValueEventListener {
     private ActivityChatBinding mBinding;
     private ChatsViewModel chatsViewModel;
+    private DatabaseReference mUserMessageRef;
+    private DatabaseReference mMessageRef;
+    private DatabaseReference mRecentMessageRef;
+    private Query query;
 
-    public static boolean isForeground = false;
+    private String keyChat;
+
+    private ChildEventListener mListener = new SimpleChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            UserMessage model = dataSnapshot.getValue(UserMessage.class);
+            mMessageRef.orderByKey().equalTo(model.getMessageId()).addChildEventListener(new SimpleChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot snapshot, String s) {
+                    Message message = snapshot.getValue(Message.class);
+                    chatsViewModel.addItem(message);
+                }
+            });
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+        }
+    };
 
     public static void launch(Context context, User user) {
         Intent intent = new Intent(context, ChatActivity.class);
-        intent.putExtra("chatId", user.getChatIds().get(0));
+        intent.putExtra("toId", user.getId());
+        intent.putExtra("toUser", user.getName());
         context.startActivity(intent);
     }
 
@@ -47,31 +75,77 @@ public class ChatActivity extends AppCompatActivity implements ChildEventListene
         setSupportActionBar(mBinding.toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        chatsViewModel = new ChatsViewModel();
+        setTitle(toName());
+
+//        keyChat = CharHelper.sort(toId() + UserProfile.init(this).getId());
+
+        chatsViewModel = new ChatsViewModel(this);
         mBinding.setView(this);
         mBinding.setChats(chatsViewModel);
 
-        FireDBHelper.doQuery(ChatEvent.CHAT).child(toId()).addChildEventListener(this);
+        mUserMessageRef = FirebaseDatabase.getInstance().getReference().child(UserMessage.class.getSimpleName());
+        mMessageRef = FirebaseDatabase.getInstance().getReference().child(Message.class.getSimpleName());
+        mRecentMessageRef = FirebaseDatabase.getInstance().getReference().child(RecentMessage.class.getSimpleName());
 
-        mBinding.chatSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (TextUtils.isEmpty(mBinding.chatText.getText().toString().trim()))
-                    return;
-                Chat chat = new Chat();
-                chat.setToId(toId());
-                chat.setAuthorId(UserProfile.init(getApplicationContext()).getId());
-                chat.setMessage(mBinding.chatText.getText().toString());
-                chat.setAuthor(UserProfile.init(getApplicationContext()).getName());
+        query = mUserMessageRef.child(UserProfile.init(getApplicationContext()).getId()).child(toId());
 
-                FireDBHelper.doQuery(ChatEvent.CHAT).child(toId()).child(chat.getUnixId()).setValue(chat);
-                mBinding.chatText.setText("");
-            }
-        });
+        mBinding.chatSend.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (TextUtils.isEmpty(mBinding.chatText.getText().toString().trim()))
+                            return;
+                        Message message = new Message();
+                        message.setToId(toId());
+                        message.setToUser(toName());
+                        message.setFromId(UserProfile.init(getApplicationContext()).getId());
+                        message.setFromUser(UserProfile.init(getApplicationContext()).getName());
+                        message.setContent(mBinding.chatText.getText().toString());
+                        message.setDateTime(DateFormatUtils.currentTime());
+
+                        mMessageRef.child(message.getUnixId()).setValue(message);
+
+                        UserMessage userMessage = new UserMessage();
+                        userMessage.setMessageId(message.getUnixId());
+
+                        mUserMessageRef.child(toId()).child(UserProfile.init(getApplicationContext()).getId()).push().setValue(userMessage);
+                        mUserMessageRef.child(UserProfile.init(getApplicationContext()).getId()).child(toId()).push().setValue(userMessage);
+
+                        mRecentMessageRef.child(UserProfile.init(getApplicationContext()).getId()).child(toId()).setValue(message);
+                        mRecentMessageRef.child(toId()).child(UserProfile.init(getApplicationContext()).getId()).setValue(message);
+
+                        mBinding.chatText.setText("");
+                        mBinding.recycler.smoothScrollToPosition(mBinding.recycler.getAdapter().getItemCount());
+                    }
+                }
+
+        );
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (query == null) return;
+        query = query.limitToLast(25);
+        query.addChildEventListener(mListener);
+        query.addListenerForSingleValueEvent(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (query == null)
+            return;
+        query.removeEventListener(mListener);
+        query.removeEventListener(this);
     }
 
     public String toId() {
-        return getIntent().getStringExtra("chatId");
+        return getIntent().getStringExtra("toId");
+    }
+
+    public String toName() {
+        return getIntent().getStringExtra("toUser");
     }
 
     @Override
@@ -84,35 +158,6 @@ public class ChatActivity extends AppCompatActivity implements ChildEventListene
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-        if (dataSnapshot.exists()) {
-            Chat chat = dataSnapshot.getValue(Chat.class);
-            ChatViewModel chatViewModel = new ChatViewModel(chat);
-            if (chat.getAuthorId().equals(UserProfile.init(getApplicationContext()).getId()))
-                chatViewModel.setMe(true);
-            else
-                chatViewModel.setMe(false);
-            chatsViewModel.addItem(chatViewModel);
-        }
-    }
-
-    @Override
-    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-    }
-
-    @Override
-    public void onChildRemoved(DataSnapshot dataSnapshot) {
-    }
-
-    @Override
-    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-    }
-
-    @Override
-    public void onCancelled(DatabaseError databaseError) {
-    }
-
     public ItemBinder<ChatViewModel> itemViewBinder() {
         return new CompositeItemBinder<>(
                 new ChatBinder(BR.chat, R.layout.item_chat)
@@ -123,20 +168,17 @@ public class ChatActivity extends AppCompatActivity implements ChildEventListene
         return new ClickHandler<ChatViewModel>() {
             @Override
             public void onClick(ChatViewModel viewModel, View v) {
-
             }
         };
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        isForeground = true;
+    public void onDataChange(DataSnapshot dataSnapshot) {
+        mBinding.contentProgress.setVisibility(View.GONE);
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        isForeground = false;
+    public void onCancelled(DatabaseError databaseError) {
+        mBinding.contentProgress.setVisibility(View.GONE);
     }
 }

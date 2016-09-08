@@ -12,11 +12,10 @@ import com.afinos.api.binder.CompositeItemBinder;
 import com.afinos.api.binder.ItemBinder;
 import com.afinos.api.config.UserProfile;
 import com.afinos.api.helper.FireDBHelper;
-import com.afinos.api.key.Action;
 import com.afinos.api.listener.ClickHandler;
 import com.afinos.chatfire.BR;
 import com.afinos.chatfire.R;
-import com.afinos.chatfire.binder.UserBinder;
+import com.afinos.chatfire.binder.FriendBinder;
 import com.afinos.chatfire.databinding.FragmentFriendBinding;
 import com.afinos.chatfire.model.User;
 import com.afinos.chatfire.ui.ChatActivity;
@@ -49,9 +48,9 @@ public class FriendFragment extends BaseFragment implements ValueEventListener {
         FireDBHelper.doQuery(User.class, this);
     }
 
-    public ItemBinder<UserViewModel> itemViewBinder() {
+    public ItemBinder<FriendViewModel> itemViewBinder() {
         return new CompositeItemBinder<>(
-                new UserBinder(BR.user, R.layout.item_friend)
+                new FriendBinder(BR.user, R.layout.item_friend)
         );
     }
 
@@ -68,13 +67,11 @@ public class FriendFragment extends BaseFragment implements ValueEventListener {
     public void onDataChange(DataSnapshot dataSnapshot) {
         try {
             if (!dataSnapshot.exists()) {
-
             } else {
                 mUsersViewModel.clear();
                 for (DataSnapshot s : dataSnapshot.getChildren()) {
                     User user = s.getValue(User.class);
                     if (!(UserProfile.init(getContext()).getId().equals(user.getId()))) {
-                        if (user.getAction().equals(Action.Friend))
                             mUsersViewModel.addItem(new FriendViewModel(user));
                     }
                 }

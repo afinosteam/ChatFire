@@ -6,6 +6,8 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewStub;
 
 import com.afinos.api.key.K;
 import com.afinos.chatfire.R;
@@ -33,6 +35,14 @@ public class ProfileActivity extends AppCompatActivity {
 
         setSupportActionBar(mBinding.toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        final View importPanel = ((ViewStub) findViewById(R.id.stub_import)).inflate();
+        importPanel.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                importPanel.setVisibility(View.GONE);
+            }
+        }, 1000);
     }
 
     @Override

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 
+import com.afinos.api.service.ChatFireService;
 import com.afinos.chatfire.R;
 import com.afinos.chatfire.databinding.ActivitySplashScreenBinding;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,6 +29,7 @@ public class SplashScreenActivity extends BaseActivity {
     private void launch() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
+            startService(new Intent(this, ChatFireService.class));
             startActivity(new Intent(this, MainActivity.class));
             finish();
         } else {

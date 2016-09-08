@@ -9,9 +9,12 @@ import com.google.firebase.database.FirebaseDatabase;
 public class ChatEvent {
     public final static String ACTION_JOIN = "action_join";
     public final static String ACTION_SEND = "action_send";
+    public final static String ACTION_RECEIVE = "action_receive";
     public final static String ACTION_UPDATE = "action_update";
     public final static String ACTION_PUBLIC = "action_public";
     public final static String ACTION_PRIVATE = "action_private";
+
+    public final static String CHAT_DATA = "chat_data";
 
     public final static String CHAT = "Chat";
 

@@ -22,6 +22,8 @@ public class UserViewModel extends BaseObservable {
     private boolean requesting;
     private boolean friend;
 
+    private String lastMessage;
+
     public UserViewModel(User user) {
         this.model = user;
     }
@@ -53,7 +55,6 @@ public class UserViewModel extends BaseObservable {
                 FireDBHelper.doQuery(UserRequest.class).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        FireDBHelper.doQuery(User.class).child(getModel().getId()).child("action").setValue(Action.Friend_Request);
                     }
 
                     @Override
@@ -83,5 +84,15 @@ public class UserViewModel extends BaseObservable {
     public void setFriend(boolean friend) {
         this.friend = friend;
         notifyPropertyChanged(BR.friend);
+    }
+
+    @Bindable
+    public String getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
+        notifyPropertyChanged(BR.lastMessage);
     }
 }

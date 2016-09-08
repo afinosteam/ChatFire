@@ -8,11 +8,14 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.afinos.api.config.UserProfile;
 import com.afinos.api.key.ChatEvent;
 import com.afinos.api.helper.FireDBHelper;
+import com.afinos.api.service.ChatFireService;
+import com.afinos.chatfire.model.Message;
 import com.afinos.chatfire.model.User;
 import com.facebook.FacebookSdk;
 import com.facebook.login.LoginManager;
@@ -24,14 +27,22 @@ import com.google.firebase.auth.FirebaseUser;
  */
 public abstract class BaseActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
     private static final String TAG = BaseActivity.class.getSimpleName();
+    public static boolean isForeground = false;
     protected FirebaseAuth mAuth;
 
     private IntentFilter mIntentFilter;
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ChatEvent.ACTION_PRIVATE)) {
-
+            if (intent.getAction().equals(ChatEvent.ACTION_RECEIVE)) {
+                Message message = new Message();
+                message.setToId(intent.getStringExtra("toId"));
+                message.setToUser(intent.getStringExtra("toUser"));
+                message.setFromId(intent.getStringExtra("fromId"));
+                message.setFromUser(intent.getStringExtra("fromUser"));
+                message.setContent(intent.getStringExtra("content"));
+                message.setDateTime(intent.getStringExtra("dateTime"));
+                ChatFireService.doNotify(getApplicationContext(), message);
             }
         }
     };
@@ -48,6 +59,14 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         mIntentFilter.addAction(ChatEvent.ACTION_SEND);
         mIntentFilter.addAction(ChatEvent.ACTION_PUBLIC);
         mIntentFilter.addAction(ChatEvent.ACTION_PRIVATE);
+        mIntentFilter.addAction(ChatEvent.ACTION_RECEIVE);
+
+        if (!TextUtils.isEmpty(getIntent().getAction()))
+            if (getIntent().getAction().equals(ChatEvent.CHAT)) {
+                Intent intent = new Intent(this, ChatActivity.class);
+                intent.putExtras(getIntent().getExtras());
+                startActivity(intent);
+            }
     }
 
     @Override
@@ -55,6 +74,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         registerReceiver(receiver, mIntentFilter);
         mAuth.addAuthStateListener(this);
         super.onStart();
+        isForeground = true;
     }
 
     @Override
@@ -62,6 +82,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         unregisterReceiver(receiver);
         mAuth.removeAuthStateListener(this);
         super.onStop();
+        isForeground = false;
     }
 
     @Override
@@ -96,6 +117,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
 
         LoginManager.getInstance().logOut();
         FirebaseAuth.getInstance().signOut();
+        stopService(new Intent(this, ChatFireService.class));
         startActivity(new Intent(this, LoginActivity.class));
     }
 }

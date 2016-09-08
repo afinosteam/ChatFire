@@ -4,25 +4,25 @@ import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 
 import com.afinos.chatfire.BR;
-import com.afinos.chatfire.model.Chat;
+import com.afinos.chatfire.model.Message;
 
 /**
  * Created by phearom on 7/13/16.
  */
 public class ChatViewModel extends BaseObservable {
-    private Chat model;
+    private Message model;
     private boolean me;
 
-    public ChatViewModel(Chat user) {
-        this.model = user;
+    public ChatViewModel(Message message) {
+        this.model = message;
     }
 
-    public String getMessage() {
-        return this.model.getMessage();
+    public String getContent() {
+        return this.model.getContent();
     }
 
-    public String getAuthor() {
-        return this.model.getAuthor();
+    public String getFromUser() {
+        return this.model.getFromUser();
     }
 
     @Bindable

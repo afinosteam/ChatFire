@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.afinos.api.helper.FireDBHelper;
+import com.afinos.api.service.ChatFireService;
 import com.afinos.chatfire.R;
 import com.afinos.chatfire.databinding.ActivityLoginBinding;
 import com.afinos.chatfire.model.User;
@@ -82,9 +83,11 @@ public class LoginActivity extends BaseActivity {
                             user.setActive(true);
                             user.setEmail(firebaseUser.getEmail());
                             user.setName(firebaseUser.getDisplayName());
+                            user.setProfile(firebaseUser.getPhotoUrl().getPath());
 
                             FireDBHelper.create(user);
 
+                            startService(new Intent(LoginActivity.this, ChatFireService.class));
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         }

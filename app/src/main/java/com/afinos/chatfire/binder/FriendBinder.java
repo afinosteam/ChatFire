@@ -2,19 +2,18 @@ package com.afinos.chatfire.binder;
 
 import com.afinos.api.binder.ConditionalDataBinder;
 import com.afinos.chatfire.viewmodel.FriendViewModel;
-import com.afinos.chatfire.viewmodel.UserViewModel;
 
 /**
  * Created by phearom on 7/13/16.
  */
-public class FriendBinder extends ConditionalDataBinder<UserViewModel> {
+public class FriendBinder extends ConditionalDataBinder<FriendViewModel> {
 
     public FriendBinder(int bindingVariable, int layoutId) {
         super(bindingVariable, layoutId);
     }
 
     @Override
-    public boolean canHandle(UserViewModel model) {
-        return model instanceof FriendViewModel;
+    public boolean canHandle(FriendViewModel model) {
+        return true;
     }
 }

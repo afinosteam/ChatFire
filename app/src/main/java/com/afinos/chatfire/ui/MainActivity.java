@@ -1,6 +1,5 @@
 package com.afinos.chatfire.ui;
 
-import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -10,12 +9,10 @@ import android.view.View;
 
 import com.afinos.api.adapter.FragmentPager;
 import com.afinos.api.base.BaseFragment;
-import com.afinos.api.service.ChatFireService;
 import com.afinos.chatfire.R;
 import com.afinos.chatfire.databinding.ActivityMainBinding;
 import com.afinos.chatfire.ui.fragment.FriendFragment;
-import com.afinos.chatfire.ui.fragment.FriendRequestFragment;
-import com.afinos.chatfire.ui.fragment.UserFragment;
+import com.afinos.chatfire.ui.fragment.RecentFragment;
 
 public class MainActivity extends BaseActivity {
     private ActivityMainBinding mBinding;
@@ -40,8 +37,7 @@ public class MainActivity extends BaseActivity {
         mBinding.viewPager.setAdapter(fragmentPager);
 
         fragmentPager.addItem(new FriendFragment());
-        fragmentPager.addItem(new FriendRequestFragment());
-        fragmentPager.addItem(new UserFragment());
+        fragmentPager.addItem(new RecentFragment());
 
         mBinding.btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,11 +57,5 @@ public class MainActivity extends BaseActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        startService(new Intent(this, ChatFireService.class));
     }
 }
