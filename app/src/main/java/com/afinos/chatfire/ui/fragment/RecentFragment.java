@@ -30,16 +30,18 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 /**
  * Created by phearom on 7/14/16.
  */
-public class RecentFragment extends BaseFragment implements ChildEventListener {
+public class RecentFragment extends BaseFragment implements ChildEventListener, ValueEventListener {
     private FragmentRecentMessageBinding mBinding;
     private RecentMessagesViewModel mRecentMessagesViewModel;
 
     private DatabaseReference mRecentMessageRef;
     private DatabaseReference mUserRef;
+    private DatabaseReference mQuery;
 
     @Nullable
     @Override
@@ -54,11 +56,24 @@ public class RecentFragment extends BaseFragment implements ChildEventListener {
         mBinding.setView(this);
         mBinding.setRecents(mRecentMessagesViewModel = new RecentMessagesViewModel());
 
-        mRecentMessageRef = FirebaseDatabase.getInstance().getReference().child(RecentMessage.class.getSimpleName());
-        mRecentMessageRef.child(UserProfile.init(getContext()).getId()).addChildEventListener(this);
         mUserRef = FirebaseDatabase.getInstance().getReference().child(User.class.getSimpleName());
+        mRecentMessageRef = FirebaseDatabase.getInstance().getReference().child(RecentMessage.class.getSimpleName());
+        mQuery = mRecentMessageRef.child(UserProfile.init(getContext()).getId());
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mQuery == null)
+            return;
+        mQuery.addChildEventListener(this);
+        mQuery.addListenerForSingleValueEvent(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
 
     public ItemBinder<RecentMessageViewModel> itemViewBinder() {
         return new CompositeItemBinder<>(
@@ -100,6 +115,7 @@ public class RecentFragment extends BaseFragment implements ChildEventListener {
                 RecentMessageViewModel recentMessageViewModel = new RecentMessageViewModel(message);
                 recentMessageViewModel.setUserId(user.getId());
                 recentMessageViewModel.setUserName(user.getName());
+                recentMessageViewModel.setUserProfile(user.getProfile());
                 mRecentMessagesViewModel.addItem(recentMessageViewModel);
             }
         });
@@ -117,6 +133,7 @@ public class RecentFragment extends BaseFragment implements ChildEventListener {
                 RecentMessageViewModel recentMessageViewModel = new RecentMessageViewModel(message);
                 recentMessageViewModel.setUserId(user.getId());
                 recentMessageViewModel.setUserName(user.getName());
+                recentMessageViewModel.setUserProfile(user.getProfile());
                 mRecentMessagesViewModel.swapItem(recentMessageViewModel);
             }
         });
@@ -130,6 +147,11 @@ public class RecentFragment extends BaseFragment implements ChildEventListener {
     @Override
     public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
+    }
+
+    @Override
+    public void onDataChange(DataSnapshot dataSnapshot) {
+        mBinding.contentProgress.setVisibility(View.GONE);
     }
 
     @Override

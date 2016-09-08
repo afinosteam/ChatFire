@@ -83,7 +83,7 @@ public class LoginActivity extends BaseActivity {
                             user.setActive(true);
                             user.setEmail(firebaseUser.getEmail());
                             user.setName(firebaseUser.getDisplayName());
-                            user.setProfile(firebaseUser.getPhotoUrl().getPath());
+                            user.setProfile(firebaseUser.getPhotoUrl().toString());
 
                             FireDBHelper.create(user);
 

@@ -21,7 +21,15 @@ public class RecentMessagesViewModel extends BaseObservable {
     }
 
     public void addItem(RecentMessageViewModel item) {
-        items.add(item);
+        if (items.size() > 0) {
+            int index = items.indexOf(item);
+            if (index > -1)
+                items.set(index, item);
+            else
+                items.add(item);
+        } else {
+            items.add(item);
+        }
         Collections.sort(items, new Comparator<RecentMessageViewModel>() {
             @Override
             public int compare(RecentMessageViewModel o1, RecentMessageViewModel o2) {

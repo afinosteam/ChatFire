@@ -13,6 +13,7 @@ public class RecentMessageViewModel extends BaseObservable {
 
     private String userName;
     private String userId;
+    private String userProfile;
 
     public RecentMessageViewModel(Message model) {
         this.model = model;
@@ -58,5 +59,13 @@ public class RecentMessageViewModel extends BaseObservable {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public String getUserProfile() {
+        return userProfile;
+    }
+
+    public void setUserProfile(String userProfile) {
+        this.userProfile = userProfile;
     }
 }

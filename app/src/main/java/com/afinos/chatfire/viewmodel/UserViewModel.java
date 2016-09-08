@@ -36,6 +36,10 @@ public class UserViewModel extends BaseObservable {
         return model;
     }
 
+    public String getProfile() {
+        return this.model.getProfile();
+    }
+
     public View.OnClickListener onAddFriend() {
         return new View.OnClickListener() {
             @Override
@@ -94,5 +98,15 @@ public class UserViewModel extends BaseObservable {
     public void setLastMessage(String lastMessage) {
         this.lastMessage = lastMessage;
         notifyPropertyChanged(BR.lastMessage);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        try {
+            UserViewModel u = (UserViewModel) obj;
+            return (u.getModel().getId().equals(getModel().getId()));
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

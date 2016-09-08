@@ -5,8 +5,6 @@ import android.databinding.Bindable;
 import android.databinding.ObservableArrayList;
 import android.databinding.ObservableList;
 
-import java.util.List;
-
 /**
  * Created by phearom on 7/13/16.
  */
@@ -18,12 +16,23 @@ public class UsersViewModel extends BaseObservable {
         items = new ObservableArrayList<>();
     }
 
-    public void addItem(UserViewModel userViewModel) {
-        items.add(userViewModel);
+    public void addItem(UserViewModel item) {
+        if (items.size() > 0) {
+            int index = items.indexOf(item);
+            if (index > -1)
+                items.set(index, item);
+            else
+                items.add(item);
+        } else {
+            items.add(item);
+        }
     }
 
-    public void updateItems(List<UserViewModel> userViewModels) {
-
+    public void updateItem(UserViewModel item) {
+        int index = items.indexOf(item);
+        if (index > 0) {
+            items.set(index, item);
+        }
     }
 
     public UserViewModel getItem(int pos) throws Exception {
@@ -32,5 +41,9 @@ public class UsersViewModel extends BaseObservable {
 
     public void clear() {
         items.clear();
+    }
+
+    public void removeItem(UserViewModel item) {
+        this.items.remove(item);
     }
 }

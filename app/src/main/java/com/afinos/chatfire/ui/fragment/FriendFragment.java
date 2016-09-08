@@ -11,7 +11,6 @@ import com.afinos.api.base.BaseFragment;
 import com.afinos.api.binder.CompositeItemBinder;
 import com.afinos.api.binder.ItemBinder;
 import com.afinos.api.config.UserProfile;
-import com.afinos.api.helper.FireDBHelper;
 import com.afinos.api.listener.ClickHandler;
 import com.afinos.chatfire.BR;
 import com.afinos.chatfire.R;
@@ -22,16 +21,20 @@ import com.afinos.chatfire.ui.ChatActivity;
 import com.afinos.chatfire.viewmodel.FriendViewModel;
 import com.afinos.chatfire.viewmodel.UserViewModel;
 import com.afinos.chatfire.viewmodel.UsersViewModel;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 /**
  * Created by phearom on 7/14/16.
  */
-public class FriendFragment extends BaseFragment implements ValueEventListener {
+public class FriendFragment extends BaseFragment implements ValueEventListener, ChildEventListener {
     private FragmentFriendBinding mBinding;
     private UsersViewModel mUsersViewModel;
+    private DatabaseReference mUserRef;
 
     @Nullable
     @Override
@@ -45,7 +48,21 @@ public class FriendFragment extends BaseFragment implements ValueEventListener {
         super.onViewCreated(view, savedInstanceState);
         mBinding.setView(this);
         mBinding.setUsers(mUsersViewModel = new UsersViewModel());
-        FireDBHelper.doQuery(User.class, this);
+        mUserRef = FirebaseDatabase.getInstance().getReference().child(User.class.getSimpleName());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mUserRef == null)
+            return;
+        mUserRef.addChildEventListener(this);
+        mUserRef.addListenerForSingleValueEvent(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
     }
 
     public ItemBinder<FriendViewModel> itemViewBinder() {
@@ -65,25 +82,39 @@ public class FriendFragment extends BaseFragment implements ValueEventListener {
 
     @Override
     public void onDataChange(DataSnapshot dataSnapshot) {
-        try {
-            if (!dataSnapshot.exists()) {
-            } else {
-                mUsersViewModel.clear();
-                for (DataSnapshot s : dataSnapshot.getChildren()) {
-                    User user = s.getValue(User.class);
-                    if (!(UserProfile.init(getContext()).getId().equals(user.getId()))) {
-                            mUsersViewModel.addItem(new FriendViewModel(user));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        mBinding.contentProgress.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+        User user = dataSnapshot.getValue(User.class);
+        if (!(UserProfile.init(getContext()).getId().equals(user.getId()))) {
+            mUsersViewModel.addItem(new FriendViewModel(user));
         }
     }
 
     @Override
-    public void onCancelled(DatabaseError databaseError) {
+    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+        User user = dataSnapshot.getValue(User.class);
+        if (!(UserProfile.init(getContext()).getId().equals(user.getId()))) {
+            mUsersViewModel.updateItem(new FriendViewModel(user));
+        }
+    }
 
+    @Override
+    public void onChildRemoved(DataSnapshot dataSnapshot) {
+        User user = dataSnapshot.getValue(User.class);
+        if (!(UserProfile.init(getContext()).getId().equals(user.getId()))) {
+            mUsersViewModel.removeItem(new FriendViewModel(user));
+        }
+    }
+
+    @Override
+    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+    }
+
+    @Override
+    public void onCancelled(DatabaseError databaseError) {
     }
 
     @Override
