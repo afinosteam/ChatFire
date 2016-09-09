@@ -107,9 +107,9 @@ public class RecentFragment extends BaseFragment implements ChildEventListener, 
     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
         final Message message = dataSnapshot.getValue(Message.class);
         Log.i("KEY", "User KEY : " + dataSnapshot.getKey());
-        mUserRef.orderByKey().equalTo(dataSnapshot.getKey()).addChildEventListener(new SimpleChildEventListener() {
+        mUserRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot snapshot, String s) {
+            public void onDataChange(DataSnapshot snapshot) {
                 Log.i("KEY", "User : " + snapshot);
                 User user = snapshot.getValue(User.class);
                 RecentMessageViewModel recentMessageViewModel = new RecentMessageViewModel(message);
@@ -117,6 +117,11 @@ public class RecentFragment extends BaseFragment implements ChildEventListener, 
                 recentMessageViewModel.setUserName(user.getName());
                 recentMessageViewModel.setUserProfile(user.getProfile());
                 mRecentMessagesViewModel.addItem(recentMessageViewModel);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
         });
     }

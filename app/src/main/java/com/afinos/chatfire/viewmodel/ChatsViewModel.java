@@ -31,6 +31,7 @@ public class ChatsViewModel extends BaseObservable {
     }
 
     public void addItem(ChatViewModel chatViewModel) {
+        chatViewModel.setMe(chatViewModel.getModel().getFromId().equals(UserProfile.init(mContext).getId()));
         items.add(chatViewModel);
     }
 

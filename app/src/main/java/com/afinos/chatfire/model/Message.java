@@ -3,13 +3,14 @@ package com.afinos.chatfire.model;
 /**
  * Created by phearom on 7/15/16.
  */
-public class Message extends FModel{
+public class Message {
     private String toId;
     private String toUser;
     private String fromUser;
     private String fromId;
     private String content;
     private String dateTime;
+    private String keyChat;
 
     public String getToId() {
         return toId;
@@ -57,5 +58,13 @@ public class Message extends FModel{
 
     public void setDateTime(String dateTime) {
         this.dateTime = dateTime;
+    }
+
+    public String getKeyChat() {
+        return keyChat;
+    }
+
+    public void setKeyChat(String keyChat) {
+        this.keyChat = keyChat;
     }
 }

@@ -12,9 +12,14 @@ import com.afinos.chatfire.model.Message;
 public class ChatViewModel extends BaseObservable {
     private Message model;
     private boolean me;
+    private String profile;
 
     public ChatViewModel(Message message) {
         this.model = message;
+    }
+
+    public Message getModel() {
+        return this.model;
     }
 
     public String getContent() {
@@ -33,5 +38,13 @@ public class ChatViewModel extends BaseObservable {
     public void setMe(boolean me) {
         this.me = me;
         notifyPropertyChanged(BR.me);
+    }
+
+    public String getProfile() {
+        return profile;
+    }
+
+    public void setProfile(String profile) {
+        this.profile = profile;
     }
 }

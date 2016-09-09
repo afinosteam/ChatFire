@@ -29,4 +29,10 @@ public class ViewBinding {
         if (TextUtils.isEmpty(url)) return;
         Glide.with(imageView.getContext()).load(url).placeholder(R.mipmap.ic_launcher).error(R.mipmap.ic_launcher).into(imageView);
     }
+
+    @BindingAdapter("bindChat")
+    public static void setChat(AppCompatImageView imageView, String url) {
+        if (TextUtils.isEmpty(url)) return;
+        Glide.with(imageView.getContext()).load(url).override(30, 30).placeholder(R.mipmap.ic_launcher).error(R.mipmap.ic_launcher).into(imageView);
+    }
 }

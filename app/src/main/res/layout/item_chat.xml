@@ -6,6 +6,8 @@
 
         <import type="android.view.Gravity" />
 
+        <import type="android.view.View" />
+
         <variable
             name="chat"
             type="com.afinos.chatfire.viewmodel.ChatViewModel" />
@@ -14,31 +16,39 @@
     <android.support.v7.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:foreground="?selectableItemBackground"
-        android:gravity="@{chat.me ? Gravity.RIGHT : Gravity.LEFT}"
-        android:orientation="vertical">
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:padding="4dp">
 
-        <android.support.v7.widget.AppCompatTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@{chat.me ? @drawable/round_right : @drawable/round_left}"
-            android:gravity="@{chat.me ? Gravity.RIGHT : Gravity.LEFT}"
-            android:padding="8dp"
-            android:text="@{chat.content}"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="@{chat.me ? @color/white: @color/gray}"
-            android:textSize="14sp" />
+        <android.support.v7.widget.AppCompatImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@mipmap/ic_launcher"
+            android:visibility="@{chat.me ? View.GONE : View.VISIBLE}"
+            app:bindChat="@{chat.profile}" />
 
-        <android.support.v7.widget.AppCompatTextView
-            android:layout_width="wrap_content"
+        <android.support.v7.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:foreground="?selectableItemBackground"
             android:gravity="@{chat.me ? Gravity.RIGHT : Gravity.LEFT}"
-            android:hint="Message"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:singleLine="true"
-            android:text="@{chat.fromUser}"
-            android:textColor="#fc7a7a"
-            android:textSize="11sp" />
+            android:orientation="horizontal">
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@{chat.me ? @drawable/round_right : @drawable/round_left}"
+                android:gravity="@{chat.me ? Gravity.RIGHT : Gravity.LEFT}"
+                android:hint="Hello"
+                android:padding="8dp"
+                android:text="@{chat.content}"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@{chat.me ? @color/white: @color/gray}"
+                android:textSize="14sp" />
+
+        </android.support.v7.widget.LinearLayoutCompat>
+
+
     </android.support.v7.widget.LinearLayoutCompat>
 </layout>

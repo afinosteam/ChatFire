@@ -20,17 +20,17 @@ import com.afinos.api.key.ChatEvent;
 import com.afinos.chatfire.R;
 import com.afinos.chatfire.model.Message;
 import com.afinos.chatfire.ui.BaseActivity;
-import com.afinos.chatfire.ui.MainActivity;
-import com.google.firebase.database.ChildEventListener;
+import com.afinos.chatfire.ui.ChatActivity;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 /**
  * Created by phearom on 7/13/16.
  */
-public class ChatFireService extends Service implements ChildEventListener {
+public class ChatFireService extends Service implements ValueEventListener {
     private static final String TAG = ChatFireService.class.getSimpleName();
     private DatabaseReference mMessageRef;
 
@@ -44,7 +44,7 @@ public class ChatFireService extends Service implements ChildEventListener {
     public void onCreate() {
         super.onCreate();
         mMessageRef = FirebaseDatabase.getInstance().getReference().child(Message.class.getSimpleName());
-        mMessageRef.orderByChild("toId").equalTo(UserProfile.init(getApplicationContext()).getId()).addChildEventListener(this);
+        mMessageRef.orderByChild("toId").equalTo(UserProfile.init(getApplicationContext()).getId()).addValueEventListener(this);
     }
 
     @Override
@@ -72,12 +72,12 @@ public class ChatFireService extends Service implements ChildEventListener {
             return;
         if (message.getFromId().equals(UserProfile.init(context).getId()))
             return;
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.setAction(ChatEvent.CHAT);
+        Intent intent = new Intent(context, ChatActivity.class);
         intent.putExtra("toId", message.getToId());
         intent.putExtra("toUser", message.getToUser());
         intent.putExtra("fromId", message.getFromId());
         intent.putExtra("fromUser", message.getFromUser());
+        intent.putExtra("keyChat", message.getKeyChat());
         intent.putExtra("content", message.getContent());
         intent.putExtra("dateTime", message.getDateTime());
 
@@ -108,36 +108,25 @@ public class ChatFireService extends Service implements ChildEventListener {
     }
 
     @Override
-    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-        Message message = dataSnapshot.getValue(Message.class);
-        if (!BaseActivity.isForeground) {
-            doNotify(getApplicationContext(), message);
-            return;
+    public void onDataChange(DataSnapshot dataSnapshot) {
+        if (dataSnapshot.exists()) {
+            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                Message message = snapshot.getValue(Message.class);
+                if (!BaseActivity.isForeground) {
+                    doNotify(getApplicationContext(), message);
+                    return;
+                }
+                Intent intent = new Intent();
+                intent.setAction(ChatEvent.ACTION_RECEIVE);
+                intent.putExtra("toId", message.getToId());
+                intent.putExtra("toUser", message.getToUser());
+                intent.putExtra("fromId", message.getFromId());
+                intent.putExtra("fromUser", message.getFromUser());
+                intent.putExtra("content", message.getContent());
+                intent.putExtra("dateTime", message.getDateTime());
+                sendBroadcast(intent);
+            }
         }
-        Intent intent = new Intent();
-        intent.setAction(ChatEvent.ACTION_RECEIVE);
-        intent.putExtra("toId", message.getToId());
-        intent.putExtra("toUser", message.getToUser());
-        intent.putExtra("fromId", message.getFromId());
-        intent.putExtra("fromUser", message.getFromUser());
-        intent.putExtra("content", message.getContent());
-        intent.putExtra("dateTime", message.getDateTime());
-        sendBroadcast(intent);
-    }
-
-    @Override
-    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-    }
-
-    @Override
-    public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-    }
-
-    @Override
-    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
     }
 
     @Override

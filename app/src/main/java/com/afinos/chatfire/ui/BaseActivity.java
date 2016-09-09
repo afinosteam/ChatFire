@@ -8,12 +8,11 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.afinos.api.config.UserProfile;
-import com.afinos.api.key.ChatEvent;
 import com.afinos.api.helper.FireDBHelper;
+import com.afinos.api.key.ChatEvent;
 import com.afinos.api.service.ChatFireService;
 import com.afinos.chatfire.model.Message;
 import com.afinos.chatfire.model.User;
@@ -40,6 +39,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 message.setToUser(intent.getStringExtra("toUser"));
                 message.setFromId(intent.getStringExtra("fromId"));
                 message.setFromUser(intent.getStringExtra("fromUser"));
+                message.setKeyChat(intent.getStringExtra("keyChat"));
                 message.setContent(intent.getStringExtra("content"));
                 message.setDateTime(intent.getStringExtra("dateTime"));
                 ChatFireService.doNotify(getApplicationContext(), message);
@@ -60,13 +60,6 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         mIntentFilter.addAction(ChatEvent.ACTION_PUBLIC);
         mIntentFilter.addAction(ChatEvent.ACTION_PRIVATE);
         mIntentFilter.addAction(ChatEvent.ACTION_RECEIVE);
-
-        if (!TextUtils.isEmpty(getIntent().getAction()))
-            if (getIntent().getAction().equals(ChatEvent.CHAT)) {
-                Intent intent = new Intent(this, ChatActivity.class);
-                intent.putExtras(getIntent().getExtras());
-                startActivity(intent);
-            }
     }
 
     @Override

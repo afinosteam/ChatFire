@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.afinos.api.binder.CompositeItemBinder;
 import com.afinos.api.binder.ItemBinder;
 import com.afinos.api.config.UserProfile;
+import com.afinos.api.helper.CharHelper;
 import com.afinos.api.listener.ClickHandler;
 import com.afinos.api.listener.SimpleChildEventListener;
 import com.afinos.api.utils.DateFormatUtils;
@@ -21,7 +23,6 @@ import com.afinos.chatfire.databinding.ActivityChatBinding;
 import com.afinos.chatfire.model.Message;
 import com.afinos.chatfire.model.RecentMessage;
 import com.afinos.chatfire.model.User;
-import com.afinos.chatfire.model.UserMessage;
 import com.afinos.chatfire.viewmodel.ChatViewModel;
 import com.afinos.chatfire.viewmodel.ChatsViewModel;
 import com.google.firebase.database.ChildEventListener;
@@ -32,27 +33,50 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-public class ChatActivity extends BaseActivity implements ValueEventListener {
+public class ChatActivity extends BaseActivity {
     private ActivityChatBinding mBinding;
     private ChatsViewModel chatsViewModel;
-    private DatabaseReference mUserMessageRef;
+    private DatabaseReference mUserRef;
     private DatabaseReference mMessageRef;
     private DatabaseReference mRecentMessageRef;
     private Query query;
 
     private String keyChat;
 
+    private int loaded = 0;
+
     private ChildEventListener mListener = new SimpleChildEventListener() {
         @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            UserMessage model = dataSnapshot.getValue(UserMessage.class);
-            mMessageRef.orderByKey().equalTo(model.getMessageId()).addChildEventListener(new SimpleChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot snapshot, String s) {
-                    Message message = snapshot.getValue(Message.class);
-                    chatsViewModel.addItem(message);
-                }
-            });
+        public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
+            loaded++;
+            final Message message = dataSnapshot.getValue(Message.class);
+            String id = message.getToId();
+            if (message.getFromId().equals(UserProfile.init(getApplicationContext()).getId())) {
+                ChatViewModel model = new ChatViewModel(message);
+                chatsViewModel.addItem(model);
+            } else {
+                mUserRef.child(id).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        User user = snapshot.getValue(User.class);
+                        ChatViewModel model = new ChatViewModel(message);
+                        model.setProfile(user.getProfile());
+                        chatsViewModel.addItem(model);
+                        Log.i("item", "item : " + snapshot.toString());
+                        loaded--;
+                        if (loaded == 0) {
+                            Log.i("item", "done");
+                            mBinding.contentProgress.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+            Log.i("item", "item : " + s);
         }
 
         @Override
@@ -77,17 +101,17 @@ public class ChatActivity extends BaseActivity implements ValueEventListener {
 
         setTitle(toName());
 
-//        keyChat = CharHelper.sort(toId() + UserProfile.init(this).getId());
+        keyChat = CharHelper.sort(toId() + UserProfile.init(this).getId());
+        mUserRef = FirebaseDatabase.getInstance().getReference().child(User.class.getSimpleName());
 
         chatsViewModel = new ChatsViewModel(this);
         mBinding.setView(this);
         mBinding.setChats(chatsViewModel);
 
-        mUserMessageRef = FirebaseDatabase.getInstance().getReference().child(UserMessage.class.getSimpleName());
         mMessageRef = FirebaseDatabase.getInstance().getReference().child(Message.class.getSimpleName());
         mRecentMessageRef = FirebaseDatabase.getInstance().getReference().child(RecentMessage.class.getSimpleName());
 
-        query = mUserMessageRef.child(UserProfile.init(getApplicationContext()).getId()).child(toId());
+        query = mMessageRef.orderByChild("keyChat").equalTo(keyChat);
 
         mBinding.chatSend.setOnClickListener(
                 new View.OnClickListener() {
@@ -100,22 +124,18 @@ public class ChatActivity extends BaseActivity implements ValueEventListener {
                         message.setToUser(toName());
                         message.setFromId(UserProfile.init(getApplicationContext()).getId());
                         message.setFromUser(UserProfile.init(getApplicationContext()).getName());
+                        message.setKeyChat(keyChat);
                         message.setContent(mBinding.chatText.getText().toString());
                         message.setDateTime(DateFormatUtils.currentTime());
 
-                        mMessageRef.child(message.getUnixId()).setValue(message);
-
-                        UserMessage userMessage = new UserMessage();
-                        userMessage.setMessageId(message.getUnixId());
-
-                        mUserMessageRef.child(toId()).child(UserProfile.init(getApplicationContext()).getId()).push().setValue(userMessage);
-                        mUserMessageRef.child(UserProfile.init(getApplicationContext()).getId()).child(toId()).push().setValue(userMessage);
+                        mMessageRef.push().setValue(message);
 
                         mRecentMessageRef.child(UserProfile.init(getApplicationContext()).getId()).child(toId()).setValue(message);
                         mRecentMessageRef.child(toId()).child(UserProfile.init(getApplicationContext()).getId()).setValue(message);
 
                         mBinding.chatText.setText("");
-                        mBinding.recycler.smoothScrollToPosition(mBinding.recycler.getAdapter().getItemCount());
+                        if (mBinding.recycler.getAdapter().getItemCount() > 0)
+                            mBinding.recycler.smoothScrollToPosition(mBinding.recycler.getAdapter().getItemCount() - 1);
                     }
                 }
 
@@ -128,7 +148,6 @@ public class ChatActivity extends BaseActivity implements ValueEventListener {
         if (query == null) return;
         query = query.limitToLast(25);
         query.addChildEventListener(mListener);
-        query.addListenerForSingleValueEvent(this);
     }
 
     @Override
@@ -137,7 +156,6 @@ public class ChatActivity extends BaseActivity implements ValueEventListener {
         if (query == null)
             return;
         query.removeEventListener(mListener);
-        query.removeEventListener(this);
     }
 
     public String toId() {
@@ -170,15 +188,5 @@ public class ChatActivity extends BaseActivity implements ValueEventListener {
             public void onClick(ChatViewModel viewModel, View v) {
             }
         };
-    }
-
-    @Override
-    public void onDataChange(DataSnapshot dataSnapshot) {
-        mBinding.contentProgress.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void onCancelled(DatabaseError databaseError) {
-        mBinding.contentProgress.setVisibility(View.GONE);
     }
 }
